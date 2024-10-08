@@ -114,7 +114,39 @@ def insert(win, position, grid, blocked_cells):
                     draw_number(win, (j, i), number, input_number_color)  # Ajouter le nouveau chiffre
 
                     pygame.display.update()
+                    if check_win(grid):  # Vérifie si le joueur a gagné
+                        show_victory_message(win)  # Affiche le message de victoire
                     return
+
+def check_win(grid):
+    # Vérifie si la grille est complètement remplie
+    for row in grid:
+        if 0 in row:
+            return False  # Si une case est vide, retourner faux
+    
+    # Vérifie chaque ligne
+    for i in range(9):
+        if len(set(grid[i])) != 9:  # Tous les chiffres de 1 à 9 doivent être présents
+            return False
+
+    # Vérifie chaque colonne
+    for j in range(9):
+        if len(set(grid[i][j] for i in range(9))) != 9:  # Tous les chiffres de 1 à 9 doivent être présents
+            return False
+
+    return True  # Tout est correct, le joueur a gagné
+
+def show_victory_message(win):
+    win.fill((255, 255, 255))  # Remplit la fenêtre avec du blanc pour le fond
+    font = pygame.font.Font(None, 60)  # Taille de police pour le message
+    text = font.render("Vous avez gagné!", True, (0, 0, 0))  # Noir pour le message
+    text_rect = text.get_rect(center=(WIDTH // 2, WIDTH // 2))
+    win.blit(text, text_rect)
+    pygame.display.update()
+    
+    # Attendre un moment avant de relancer une nouvelle partie
+    pygame.time.delay(3000)  # Afficher pendant 3 secondes
+    main()  # Relance la fonction principale pour recommencer le jeu
 
 def main():
     pygame.init()
