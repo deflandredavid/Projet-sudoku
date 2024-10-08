@@ -26,24 +26,57 @@ def is_in_block(grid, i, j, number):
                 return True
     return False
 
-def default_numbers(win):
-    size_grid = 9
-    grid = [[0 for _ in range(size_grid)] for _ in range(size_grid)]
-    blocked_cells = []  # Liste pour stocker les cases bloquées
+def can_place(grid, row, col, num):
+    # Vérifie si on peut placer le numéro
+    for i in range(9):
+        if grid[row][i] == num or grid[i][col] == num:
+            return False
+    if is_in_block(grid, row, col, num):
+        return False
+    return True
 
-    for i in range(size_grid):
-        for j in range(size_grid):
-            a = random.randint(0, 1)
-            
-            if a:
-                a = random.randint(1, 9)
-                
-                if a not in grid[i] and all(a != grid[row][j] for row in range(size_grid)) and not is_in_block(grid, i, j, a):
-                    grid[i][j] = a
-                    draw_number(win, (j, i), a, default_number_color)
-                    blocked_cells.append((i, j))  # Ajouter la case à la liste des cases bloquées
+def solve(grid):
+    for i in range(9):
+        for j in range(9):
+            if grid[i][j] == 0:
+                for num in range(1, 10):
+                    if can_place(grid, i, j, num):
+                        grid[i][j] = num
+                        if solve(grid):
+                            return True
+                        grid[i][j] = 0  # backtrack
+                return False
+    return True
 
-    return grid, blocked_cells  # Retourner la grille et les cases bloquées
+def generate_complete_grid():
+    grid = [[0 for _ in range(9)] for _ in range(9)]
+    numbers = list(range(1, 10))
+    
+    for i in range(9):
+        for j in range(9):
+            random.shuffle(numbers)  # Mélanger les numéros
+            for num in numbers:
+                if can_place(grid, i, j, num):
+                    grid[i][j] = num
+                    if solve(grid):
+                        break
+            if grid[i][j] == 0:  # Si on ne peut rien placer, recommencer
+                return generate_complete_grid()
+    return grid
+
+def remove_numbers(grid, num_to_remove):
+    count = num_to_remove
+    while count > 0:
+        row = random.randint(0, 8)
+        col = random.randint(0, 8)
+        if grid[row][col] != 0:
+            grid[row][col] = 0
+            count -= 1
+    return grid
+
+def generate_sudoku(num_to_remove):
+    complete_grid = generate_complete_grid()
+    return remove_numbers(complete_grid, num_to_remove)
 
 def draw_number(win, pos, number, color):
     font = pygame.font.Font(None, 40)  # Taille de police
@@ -90,7 +123,14 @@ def main():
     win.fill(background_color)
 
     create_grid(size, win)
-    grid, blocked_cells = default_numbers(win)  # Récupérer la grille et les cases bloquées
+    grid = generate_sudoku(num_to_remove=40)  # Générez une grille de Sudoku avec 40 numéros retirés
+    blocked_cells = [(i, j) for i in range(9) for j in range(9) if grid[i][j] != 0]
+
+    for i in range(9):
+        for j in range(9):
+            if grid[i][j] != 0:
+                draw_number(win, (j, i), grid[i][j], default_number_color)  # Dessiner les numéros par défaut
+
     pygame.display.flip()
 
     while True:
