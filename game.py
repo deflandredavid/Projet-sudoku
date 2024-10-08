@@ -1,6 +1,7 @@
 import pygame
 import random
 
+# Dimensions de la fenêtre
 WIDTH = 550
 background_color = (251, 247, 245)
 size = 10
@@ -8,8 +9,15 @@ default_number_color = (0, 0, 128)  # Bleu foncé pour les chiffres par défaut
 input_number_color = (0, 0, 0)  # Noir pour les chiffres insérés par l'utilisateur
 
 def create_grid(size, win):
+    """
+    Crée et dessine la grille de Sudoku sur la fenêtre.
+
+    Args:
+        size (int): Taille de la grille (doit être 9 pour un Sudoku standard).
+        win (pygame.Surface): La fenêtre Pygame où dessiner la grille.
+    """
     for i in range(size):
-        if(i % 3 == 0):
+        if i % 3 == 0:
             pygame.draw.line(win, (0, 0, 0), (50 + 50 * i, 50), (50 + 50 * i, 500), 4)
             pygame.draw.line(win, (0, 0, 0), (50, 50 + 50 * i), (500, 50 + 50 * i), 4)
         pygame.draw.line(win, (0, 0, 0), (50 + 50 * i, 50), (50 + 50 * i, 500), 2)
@@ -17,6 +25,18 @@ def create_grid(size, win):
     pygame.display.update()
 
 def is_in_block(grid, i, j, number):
+    """
+    Vérifie si un nombre est déjà présent dans le bloc 3x3 correspondant.
+
+    Args:
+        grid (list): La grille de Sudoku.
+        i (int): L'indice de la ligne.
+        j (int): L'indice de la colonne.
+        number (int): Le nombre à vérifier.
+
+    Returns:
+        bool: True si le nombre est dans le bloc, False sinon.
+    """
     start_row = (i // 3) * 3
     start_col = (j // 3) * 3
     
@@ -27,7 +47,18 @@ def is_in_block(grid, i, j, number):
     return False
 
 def can_place(grid, row, col, num):
-    # Vérifie si on peut placer le numéro
+    """
+    Vérifie si un numéro peut être placé à une position donnée dans la grille.
+
+    Args:
+        grid (list): La grille de Sudoku.
+        row (int): L'indice de la ligne.
+        col (int): L'indice de la colonne.
+        num (int): Le numéro à vérifier.
+
+    Returns:
+        bool: True si le numéro peut être placé, False sinon.
+    """
     for i in range(9):
         if grid[row][i] == num or grid[i][col] == num:
             return False
@@ -36,6 +67,15 @@ def can_place(grid, row, col, num):
     return True
 
 def solve(grid):
+    """
+    Résout la grille de Sudoku en utilisant la récursion et la technique de backtracking.
+
+    Args:
+        grid (list): La grille de Sudoku à résoudre.
+
+    Returns:
+        bool: True si la grille a été résolue, False sinon.
+    """
     for i in range(9):
         for j in range(9):
             if grid[i][j] == 0:
@@ -44,11 +84,17 @@ def solve(grid):
                         grid[i][j] = num
                         if solve(grid):
                             return True
-                        grid[i][j] = 0  # backtrack
+                        grid[i][j] = 0  # Backtrack
                 return False
     return True
 
 def generate_complete_grid():
+    """
+    Génère une grille de Sudoku complète et valide.
+
+    Returns:
+        list: Une grille de Sudoku remplie de manière valide.
+    """
     grid = [[0 for _ in range(9)] for _ in range(9)]
     numbers = list(range(1, 10))
     
@@ -65,6 +111,16 @@ def generate_complete_grid():
     return grid
 
 def remove_numbers(grid, num_to_remove):
+    """
+    Supprime un certain nombre de numéros aléatoirement de la grille.
+
+    Args:
+        grid (list): La grille de Sudoku complète.
+        num_to_remove (int): Le nombre de numéros à supprimer.
+
+    Returns:
+        list: La grille de Sudoku avec les numéros supprimés.
+    """
     count = num_to_remove
     while count > 0:
         row = random.randint(0, 8)
@@ -75,10 +131,28 @@ def remove_numbers(grid, num_to_remove):
     return grid
 
 def generate_sudoku(num_to_remove):
+    """
+    Génère une grille de Sudoku avec un certain nombre de numéros retirés.
+
+    Args:
+        num_to_remove (int): Le nombre de numéros à retirer.
+
+    Returns:
+        list: La grille de Sudoku générée.
+    """
     complete_grid = generate_complete_grid()
     return remove_numbers(complete_grid, num_to_remove)
 
 def draw_number(win, pos, number, color):
+    """
+    Dessine un numéro à une position donnée dans la fenêtre.
+
+    Args:
+        win (pygame.Surface): La fenêtre Pygame où dessiner le numéro.
+        pos (tuple): La position (colonne, ligne) où dessiner le numéro.
+        number (int): Le numéro à dessiner.
+        color (tuple): La couleur du numéro.
+    """
     font = pygame.font.Font(None, 40)  # Taille de police
     text = font.render(str(number), True, color)
 
@@ -88,6 +162,15 @@ def draw_number(win, pos, number, color):
     win.blit(text, (x, y))
 
 def insert(win, position, grid, blocked_cells):
+    """
+    Insère un numéro à une position donnée dans la grille si la case n'est pas bloquée.
+
+    Args:
+        win (pygame.Surface): La fenêtre Pygame où dessiner le numéro.
+        position (tuple): La position (ligne, colonne) où insérer le numéro.
+        grid (list): La grille de Sudoku.
+        blocked_cells (list): Les cellules bloquées qui ne peuvent pas être modifiées.
+    """
     i, j = position[1], position[0]
     
     # Vérifie si la case sélectionnée est occupée par un nombre
@@ -119,6 +202,15 @@ def insert(win, position, grid, blocked_cells):
                     return
 
 def check_win(grid):
+    """
+    Vérifie si le joueur a gagné en remplissant correctement la grille.
+
+    Args:
+        grid (list): La grille de Sudoku à vérifier.
+
+    Returns:
+        bool: True si le joueur a gagné, False sinon.
+    """
     # Vérifie si la grille est complètement remplie
     for row in grid:
         if 0 in row:
@@ -137,6 +229,12 @@ def check_win(grid):
     return True  # Tout est correct, le joueur a gagné
 
 def show_victory_message(win):
+    """
+    Affiche un message de victoire sur la fenêtre.
+
+    Args:
+        win (pygame.Surface): La fenêtre Pygame où afficher le message.
+    """
     win.fill((255, 255, 255))  # Remplit la fenêtre avec du blanc pour le fond
     font = pygame.font.Font(None, 60)  # Taille de police pour le message
     text = font.render("Vous avez gagné!", True, (0, 0, 0))  # Noir pour le message
@@ -149,6 +247,10 @@ def show_victory_message(win):
     main()  # Relance la fonction principale pour recommencer le jeu
 
 def main():
+    """
+    Fonction principale qui initialise Pygame, crée la fenêtre, génère la grille de Sudoku,
+    et gère les événements de jeu.
+    """
     pygame.init()
     win = pygame.display.set_mode((WIDTH, WIDTH))
     pygame.display.set_caption("Sudoku")
